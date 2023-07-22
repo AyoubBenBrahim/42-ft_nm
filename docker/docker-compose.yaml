@@ -1,0 +1,23 @@
+version: "3.7"
+services:
+ ft_nm:
+  build: 
+   context: ./
+   args:
+    BUILD_DATE: 
+  image: ft_nm
+  container_name: ft_nm
+  ports:
+   - "1234:1234"
+  volumes:
+   - ft_nm_vol:/ft_nm
+  restart: always
+
+
+volumes:
+ ft_nm_vol:
+  driver_opts:
+    type: 'none'
+    o: 'bind'
+    device: '/Users/aybouras/Desktop/42-ft_nm'
+
