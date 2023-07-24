@@ -30,32 +30,27 @@
 
 #include <stdbool.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
 #include <errno.h>
+
+#include <stdio.h>
 
 # define READ_LINE			get_next_line(0, &line)
 # define FREE_LINE			ft_strdel(&line)
 # define GNL_RET_CHCK		0
 # define TO_LOWER(x)		(x | ' ')
 
-typedef enum				e_boolean
-{
-	FALSE,
-	TRUE,
-}							t_boolean;
+// typedef enum				e_boolean
+// {
+// 	FALSE,
+// 	TRUE,
+// }							t_boolean;
 
-typedef struct				s_store
-{
-	int						row;
-	int						col;
-	int						score;
-}							t_store;
+// typedef struct				s_store
+// {
+// 	int						row;
+// 	int						col;
+// 	int						score;
+// }							t_store;
 
 
 
@@ -103,5 +98,28 @@ typedef struct				s_store
 // 	void		*mem;
 // 	t_list_head	symbols;
 // };
+
+
+typedef struct
+{
+    const char *path;
+    int fd;
+    struct stat stat;
+    void *data;
+    size_t data_size;
+
+    bool is64;
+
+    Elf64_Shdr *shdr64;
+    Elf64_Ehdr *ehdr64;
+
+    Elf32_Shdr *shdr32;
+    Elf32_Ehdr *ehdr32;
+
+    Elf32_Sym *syms32; // Pointer to the symbol table
+    Elf64_Sym *syms64;
+
+    size_t n_syms; // Number of symbols in the symbol table
+} t_file;
 
 #endif
