@@ -5,6 +5,7 @@ CC		=	gcc
 CFLAGS	=	-Werror -Wextra -Wall
 
 FUNCTIONS	=	ft_nm.c\
+				debug.c\
 				
 
 HEADERS	=		inc/ft_nm.h

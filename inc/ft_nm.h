@@ -38,26 +38,7 @@
 # define FREE_LINE			ft_strdel(&line)
 # define GNL_RET_CHCK		0
 # define TO_LOWER(x)		(x | ' ')
-
-// typedef enum				e_boolean
-// {
-// 	FALSE,
-// 	TRUE,
-// }							t_boolean;
-
-// typedef struct				s_store
-// {
-// 	int						row;
-// 	int						col;
-// 	int						score;
-// }							t_store;
-
-
-
-
-
-
-
+						
 // typedef struct {
 // 	const char *path;
 // 	int fd;
@@ -99,6 +80,24 @@
 // 	t_list_head	symbols;
 // };
 
+typedef struct {
+    char *name;         // Symbol name
+    char type;          // Symbol type (e.g., 'T' for text, 'D' for data)
+    uint64_t size;      // Symbol size
+    uint64_t value;     // Symbol value
+    uint16_t section;   // Section index
+} t_symbol;
+
+typedef struct {
+    size_t n_syms;           // Number of symbols in the symbol table
+    void *symtab;            // Pointer to the symbol table
+    size_t symtab_size;      // Size of the symbol table in bytes
+    char *strtab;            // Pointer to the string table
+    size_t strtab_size;      // Size of the string table in bytes
+
+t_symbol *symb;          // Pointer to the symbol table
+
+} t_syms;
 
 typedef struct
 {
@@ -116,10 +115,47 @@ typedef struct
     Elf32_Shdr *shdr32;
     Elf32_Ehdr *ehdr32;
 
-    Elf32_Sym *syms32; // Pointer to the symbol table
-    Elf64_Sym *syms64;
+    t_syms syms;           // // Pointer to the symbol table and string table information
 
-    size_t n_syms; // Number of symbols in the symbol table
 } t_file;
+
+
+
+/*
+**** Debugging functions
+*/
+
+void print_header32(t_file *file);
+void print_header64(t_file *file);
+
+void print_section_headers(t_file *file);
+void print_symbols(t_file *file);
+
+void display_symtab(t_file *file);
+
+char *get_symbol_type(unsigned char info);
+char *get_symbol_bind(unsigned char info);
+char *get_symbol_visibility(unsigned char other);
+
+/*
+**** Parsing functions
+*/
+
+void get_data_and_size(t_file *file);
+void manageELF(t_file files[], int n_files);
+void close_files(t_file files[], int n_files);
+
+void parse_ehdr(t_file *file);
+void parse_shdr(t_file *file);
+void parse_symtab32(t_file *file);
+void parse_symtab64(t_file *file);
+void unmap_file(void *data, size_t data_size, int fd);
+void *map_file(int fd, size_t size);
+int open_file(const char *path);
+
+void error(const char *msg);
+
+
+
 
 #endif

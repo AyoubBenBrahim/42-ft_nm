@@ -2,10 +2,7 @@
 
 #define MAX_FILES 10
 
-
-
-// Print an error message and exit the program
-void error(char *msg)
+void error(const char *msg)
 {
     fprintf(stderr, "Error: %s (%s)\n", msg, strerror(errno));
     exit(1);
@@ -33,20 +30,16 @@ void *map_file(int fd, size_t size)
     return data;
 }
 
-// Unmap a mapped file and close its file descriptor
 void unmap_file(void *data, size_t size, int fd)
 {
     if (munmap(data, size) == -1)
-    {
         error("Failed to unmap file");
-    }
+
     if (close(fd) == -1)
-    {
         error("Failed to close file");
-    }
 }
 
-// Parse the ELF header of a file and return a pointer to the ELF header
+// Parse the ELF header of a file and save a pointer to the ELF header
 void parse_ehdr(t_file *file)
 {
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)(file->data);
@@ -58,101 +51,171 @@ void parse_ehdr(t_file *file)
         error("Invalid ELF header");
     }
     if (ehdr->e_ident[EI_CLASS] != ELFCLASS32 && ehdr->e_ident[EI_CLASS] != ELFCLASS64)
-    {
         error("Invalid ELF class/arch");
-    }
-    if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB &&
-        ehdr->e_ident[EI_DATA] != ELFDATA2MSB)
-    {
+
+    if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB && ehdr->e_ident[EI_DATA] != ELFDATA2MSB)
         error("Invalid ELF data encoding(LSB/MSB)");
-    }
+
     if (ehdr->e_type != ET_REL && ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN && ehdr->e_type != ET_CORE)
-    {
         error("Invalid ELF type");
-    }
+
     if (ehdr->e_ident[EI_CLASS] == ELFCLASS32)
     {
         file->is64 = false;
         file->ehdr32 = (Elf32_Ehdr *)(file->data);
-        // file->shdr32 = (Elf32_Shdr *)((char *)file->data + file->ehdr32->e_shoff);
-        // file->syms32 = (Elf32_Sym *)((char *)file->data + file->shdr32[file->ehdr32->e_shstrndx].sh_offset);
     }
     else
     {
         file->is64 = true;
         file->ehdr64 = (Elf64_Ehdr *)(file->data);
-        // file->shdr64 = (Elf64_Shdr *)((char *)file->data + file->ehdr64->e_shoff);
-        // file->syms64 = (Elf64_Sym *)((char *)file->data + file->shdr64[file->ehdr64->e_shstrndx].sh_offset);
     }
 }
 
-// Parse the section header table of a file and return a pointer to thesection header table
+// Parse the section header table of a file and save a pointer to the section header table
 /*
-* man elf:
-* The ELF header's e_shoff member gives the
-* byte offset from the beginning of the file
-* to the section header table.
-*/
-void *parse_shdr(t_file *file)
+ * man elf:
+ * The ELF header's e_shoff member gives the
+ * byte offset from the beginning of the file
+ * to the section header table.
+ */
+void parse_shdr(t_file *file)
 {
     if (file->is64)
     {
-        file->shdr64 = (Elf64_Shdr *)((char *)file->data + file->ehdr64->e_shoff);
-        if (file->ehdr64->e_shoff == 0 || file->ehdr64->e_shentsize != sizeof(file->ehdr64) || file->ehdr64->e_shnum == 0)
-            error("Invalid section header table");
-        
+        file->shdr64 = (Elf64_Shdr *)(file->data + file->ehdr64->e_shoff);
+        if (file->ehdr64->e_shoff == 0 || file->ehdr64->e_shnum == 0)
+            error("Invalid section 64 header table");
     }
     else
     {
-        file->shdr64 = (Elf64_Shdr *)((char *)file->data + file->ehdr64->e_shoff);
-        if (file->ehdr64->e_shoff == 0 || file->ehdr64->e_shentsize != sizeof(file->ehdr64) || file->ehdr64->e_shnum == 0)
-            error("Invalid section header table");
+        file->shdr32 = (Elf32_Shdr *)(file->data + file->ehdr32->e_shoff);
+
+        if (file->ehdr32->e_shoff == 0 || file->ehdr32->e_shnum == 0)
+            error("Invalid section 32 header table");
     }
 }
 
 // Parse the symbol table of a file and return a pointer to the symbol table
-// Elf_Sym *parse_symtab(void *data, Elf_Shdr *shdr, size_t shnum, size_t strtab_index, size_t *n_syms)
-void parse_symtab(t_file *file, size_t strtab_index)
+// void parse_symtab32(t_file *file)
+// {
+//     size_t i;
+//     t_syms *syms = &(file->syms);
+
+//     for (i = 0; i < file->ehdr32->e_shnum; i++)
+//     {
+//         if (file->shdr32[i].sh_type == SHT_SYMTAB)
+//         {
+//             if (file->shdr32[i].sh_link >= file->ehdr32->e_shnum)
+//                 error("Invalid symbol table");
+
+//             syms->symtab = (void *)((char *)file->data + file->shdr32[i].sh_offset);
+//             syms->n_syms = file->shdr32[i].sh_size / sizeof(Elf32_Sym);
+//             syms->symtab_size = file->shdr32[i].sh_size;
+//             syms->strtab = (char *)((char *)file->data + file->shdr32[file->shdr32[i].sh_link].sh_offset);
+//             syms->strtab_size = file->shdr32[file->shdr32[i].sh_link].sh_size;
+
+//             break;
+//         }
+//     }
+//     if (syms->symtab == NULL || syms->strtab == NULL)
+//         error("No symbol table found");
+// }
+
+// void parse_symtab64(t_file *file)
+// {
+//     size_t i;
+//     t_syms *syms = &(file->syms);
+//     for (i = 0; i < file->ehdr64->e_shnum; i++)
+//     {
+//         if (file->shdr64[i].sh_type == SHT_SYMTAB)
+//         {
+//             syms->n_syms = file->shdr64[i].sh_size / sizeof(Elf64_Sym);
+//             syms->symtab = file->data + file->shdr64[i].sh_offset;
+//             syms->symtab_size = file->shdr64[i].sh_size;
+//             if (file->shdr64[i].sh_link == 0)
+//                 error("Invalid symbol table string table index");
+//             syms->strtab = file->data + file->shdr64[file->shdr64[i].sh_link].sh_offset;
+//             syms->strtab_size = file->shdr64[file->shdr64[i].sh_link].sh_size;
+//             break;
+//         }
+//     }
+//     if (syms->n_syms == 0)
+//         error("Failed to find symbol table");
+// }
+
+void parse_symtab32(t_file *file)
 {
     size_t i;
-    Elf32_Sym *syms32 = NULL;
-    Elf64_Sym *syms64 = NULL;
-
-    Elf32_shdr *STRTAB = NULL;
-
+    t_syms *syms = &(file->syms);
     for (i = 0; i < file->ehdr32->e_shnum; i++)
     {
+        // char *name = (char *)((void *)file->shdr32 + file->shdr32[file->ehdr32->e_shstrndx].sh_offset) + file->shdr32[i].sh_name;
         if (file->shdr32[i].sh_type == SHT_SYMTAB)
         {
-            if (file->shdr32[i].sh_link != strtab_index)
-                error("Invalid symbol table");
-            
-            syms32 = (Elf32_Sym *)((char *)file->data + file->shdr32[i].sh_offset);
-            file->n_syms = file->shdr32[i].sh_size / sizeof(Elf32_Sym);
+            syms->n_syms = file->shdr32[i].sh_size / sizeof(Elf32_Sym);
+
+            syms->symb = (t_symbol *)malloc(syms->n_syms * sizeof(t_symbol));
+            if (syms->symb == NULL)
+                error("Failed to allocate memory for symbol table");
+            ft_memset(syms->symb, 0, syms->n_syms * sizeof(t_symbol));
+
+            char *strtab = (char *)(file->data + file->shdr32[file->shdr32[i].sh_link].sh_offset);
+            syms->strtab = strtab;
+            syms->strtab_size = file->shdr32[file->shdr32[i].sh_link].sh_size;
+            syms->symtab = file->data + file->shdr32[i].sh_offset;
+            syms->symtab_size = file->shdr32[i].sh_size;
+            Elf32_Sym *symtab = (Elf32_Sym *)syms->symtab;
+
+            for (size_t j = 0; j < syms->n_syms; j++)
+            {
+                syms->symb[j].name = strtab + symtab[j].st_name;
+                syms->symb[j].type = ELF32_ST_TYPE(symtab[j].st_info);
+                
+                syms->symb[j].size = symtab[j].st_size;
+                syms->symb[j].value = symtab[j].st_value;
+                syms->symb[j].section = symtab[j].st_shndx;
+            }
+
             break;
         }
     }
-    if (syms32 == NULL)
-        error("No symbol table found");
-    
-    file->syms32 = syms32;
+}
 
+void parse_symtab64(t_file *file)
+{
+    size_t i;
+    t_syms *syms = &(file->syms);
+    for (i = 0; i < file->ehdr64->e_shnum; i++)
+    {
+        // Locate the symbol table section
+        char *name = (char *)((void *)file->shdr64 + file->shdr64[file->ehdr64->e_shstrndx].sh_offset) + file->shdr64[i].sh_name;
+        if (strcmp(name, ".symtab") == 0)
+        {
+            syms->n_syms = file->shdr64[i].sh_size / sizeof(Elf64_Sym);
 
-  Elf32_Shdr *symtab_section = NULL;
-  Elf32_Shdr *strtab_section = NULL;
-  for (int i = 0; i < header->e_shnum; ++i) {
-    if (sections[i].sh_name > sections[header->e_shstrndx].sh_size)
-      return ft_printf("'%s': error bad section header at %d\n", file->path, i), 1;
-    if (sections[i].sh_type == SHT_SYMTAB) {
-      symtab_section = &sections[i];
-      strtab_section = &sections[sections[i].sh_link];
-      break;
+            syms->symb = (t_symbol *)malloc(syms->n_syms * sizeof(t_symbol));
+            if (syms->symb == NULL)
+                error("Failed to allocate memory for symbol table");
+            memset(syms->symb, 0, syms->n_syms * sizeof(t_symbol));
+
+            char *strtab = (char *)(file->data + file->shdr64[file->shdr64[i].sh_link].sh_offset);
+            syms->strtab = strtab;
+            syms->strtab_size = file->shdr64[file->shdr64[i].sh_link].sh_size;
+            Elf64_Sym *symtab = NULL;
+            syms->symtab = file->data + file->shdr64[i].sh_offset;
+            syms->symtab_size = file->shdr64[i].sh_size;
+            symtab = (Elf64_Sym *)syms->symtab;
+            for (size_t j = 0; j < syms->n_syms; j++)
+            {
+                syms->symb[j].name = strtab + symtab[j].st_name;
+                syms->symb[j].type = ELF64_ST_TYPE(symtab[j].st_info);
+               
+                syms->symb[j].size = symtab[j].st_size;
+                syms->symb[j].value = symtab[j].st_value;
+                syms->symb[j].section = symtab[j].st_shndx;
+            }
+        }
     }
-  }
-  if (symtab_section == NULL || strtab_section == NULL)
-    return ft_printf("'%s': no symbol table found\n", file->path), 1;
-
-
 }
 
 void get_data_and_size(t_file *file)
@@ -180,8 +243,10 @@ void manageELF(t_file files[], int n_files)
         get_data_and_size(&files[i]);
         parse_ehdr(&files[i]);
         parse_shdr(&files[i]);
-        // files[i].syms = parse_symtab(files[i].data, files[i].shdr, files[i].ehdr->e_shnum, files[i].shdr[files[i].ehdr->e_shstrndx].sh_link, &files[i].n_syms);
-        parse_symtab(&files[i], files[i].shdr32[files[i].ehdr32->e_shstrndx].sh_link);
+        if (files[i].is64)
+            parse_symtab64(&files[i]);
+        else
+            parse_symtab32(&files[i]);
     }
 }
 
@@ -195,83 +260,87 @@ void close_files(t_file files[], int n_files)
     }
 }
 
-// Print the symbol table of a file
-void print_symtab(t_file *file)
+void print_symbols(t_file *file)
 {
-    size_t i;
-    const char *strtab = (const char *)file->data + file->shdr[file->ehdr->e_shstrndx].sh_offset;
-    printf("Symbol table '%s':\n", file->path);
-    printf("%-20s %-10s %-10s %-10s %-5s %-10s\n", "Name", "Value", "Size", "Type", "Bind", "Visibility");
-    for (i = 0; i < file->n_syms; i++)
+    if (file->ehdr32->e_ident[EI_CLASS] == ELFCLASS32)
     {
-        const char *name = strtab + file->syms[i].st_name;
-        printf("%-20s %08lx %08lx ", name, file->syms[i].st_value, file->syms[i].st_size);
-        switch (ELF64_ST_TYPE(file->syms[i].st_info))
+        Elf32_Sym *syms32 = (Elf32_Sym *)file->syms.symtab;
+        size_t i;
+
+        printf("Symbol table:\n");
+        for (i = 0; i < file->syms.n_syms; i++)
         {
-        case STT_NOTYPE:
-            printf("NOTYPE    ");
-            break;
-        case STT_OBJECT:
-            printf("OBJECT    ");
-            break;
-        case STT_FUNC:
-            printf("FUNC      ");
-            break;
-        case STT_SECTION:
-            printf("SECTION   ");
-            break;
-        case STT_FILE:
-            printf("FILE      ");
-            break;
-        case STT_COMMON:
-            printf("COMMON    ");
-            break;
-        case STT_TLS:
-            printf("TLS       ");
-            break;
-        default:
-            printf("UNKNOWN   ");
-            break;
-        }
-        switch (ELF64_ST_BIND(file->syms[i].st_info))
-        {
-        case STB_LOCAL:
-            printf("LOCAL     ");
-            break;
-        case STB_GLOBAL:
-            printf("GLOBAL    ");
-            break;
-        case STB_WEAK:
-            printf("WEAK      ");
-            break;
-        case STB_GNU_UNIQUE:
-            printf("GNU_UNIQUE");
-            break;
-        default:
-            printf("UNKNOWN   ");
-            break;
-        }
-        switch (ELF64_ST_VISIBILITY(file->syms[i].st_other))
-        {
-        case STV_DEFAULT:
-            printf("DEFAULT\n");
-            break;
-        case STV_INTERNAL:
-            printf("INTERNAL\n");
-            break;
-        case STV_HIDDEN:
-            printf("HIDDEN\n");
-            break;
-        case STV_PROTECTED:
-            printf("PROTECTED\n");
-            break;
-        default:
-            printf("UNKNOWN\n");
-            break;
+            char *name = file->syms.strtab + syms32[i].st_name;
+            printf("  %s\n", name);
         }
     }
-    printf("\n");
+    else if (file->ehdr32->e_ident[EI_CLASS] == ELFCLASS64)
+    {
+        Elf64_Sym *syms64 = (Elf64_Sym *)file->syms.symtab;
+        size_t i;
+
+        printf("Symbol table:\n");
+        for (i = 0; i < file->syms.n_syms; i++)
+        {
+            char *name = file->syms.strtab + syms64[i].st_name;
+            printf("  %s\n", name);
+        }
+    }
 }
+
+// void print_symbolsNew(t_file *file) {
+//     printf("Symbol table '%s':\n", file->path);
+//     // for (size_t i = 0; i < file->syms.n_syms; i++) {
+//     //     printf("%016lx %c %s\n", file->syms.symb[i].value, file->syms.symb[i].type, file->syms.symb[i].name);
+//     // }
+//     for (size_t i = 0; i < file->syms.n_syms; i++) {
+//         printf("file->syms.symb[i].value = %016lx\n", file->syms.symb[i].value);
+//         printf("file->syms.symb[i].type = %c\n", file->syms.symb[i].type);
+//         printf("file->syms.symb[i].name = %s\n", file->syms.symb[i].name);
+
+//         printf("====================================\n");
+//     }
+// }
+
+int compare_symbols_by_value(const void *a, const void *b) {
+    const t_symbol *sym_a = (const t_symbol *)a;
+    const t_symbol *sym_b = (const t_symbol *)b;
+    if (sym_a->value < sym_b->value) {
+        return -1;
+    } else if (sym_a->value > sym_b->value) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int compare_symbols_by_name(const void *a, const void *b) {
+    t_symbol *sym_a = (t_symbol *)a;
+    t_symbol *sym_b = (t_symbol *)b;
+    return strcmp(sym_a->name, sym_b->name);
+}
+
+void sort_symbols_by_name(t_symbol *symbols, size_t n_symbols) {
+    for (size_t i = 1; i < n_symbols; i++) {
+        t_symbol temp = symbols[i];
+        size_t j = i;
+        while (j > 0 && strcmp(symbols[j-1].name, temp.name) > 0) {
+            symbols[j] = symbols[j-1];
+            j--;
+        }
+        symbols[j] = temp;
+    }
+}
+
+void print_symbolsNew(t_file *file) {
+    printf("Symbol table '%s':\n", file->path);
+    sort_symbols_by_name(file->syms.symb, file->syms.n_syms);
+    for (size_t i = 0; i < file->syms.n_syms; i++) {
+        printf("%016lx %c %s\n", file->syms.symb[i].value, file->syms.symb[i].type, file->syms.symb[i].name);
+    }
+}
+
+
 
 int main(int argc, char *argv[])
 {
@@ -296,12 +365,20 @@ int main(int argc, char *argv[])
     }
     manageELF(files, argc - 1);
 
-    // Print the symbol tables of the input files
-    for (i = 0; i < argc - 1; i++)
+    if (files[0].is64)
     {
-        print_symtab(&files[i]);
+        print_header64(&files[0]);
+        print_section_headers(&files[0]);
+        // print_symbols(&files[0]);
     }
-
+    else
+    {
+        // print_header32(&files[0]);
+        // print_section_headers(&files[0]);
+        // print_symbols(&files[0]);
+        // display_symtab(&files[0]);
+        print_symbolsNew(files);
+    }
     // Close the input files
     close_files(files, argc - 1);
 
