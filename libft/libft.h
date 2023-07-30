@@ -21,6 +21,8 @@
 # include <fcntl.h>
 # include <limits.h>
 
+#include <stdbool.h>
+
 
 
 int                 get_next_line(const int fd, char **line);
@@ -63,6 +65,8 @@ long                ft_abs(long nb);
 char                *ft_strjoin_free(char *s1, char *s2);
 void                ft_strupper(char *str);
 int                 ft_toupper(int c);
+int                 ft_tolower(int c);
+bool                is_in_range(int value, int lower_bound, int upper_bound);
 
 
 #endif

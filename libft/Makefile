@@ -51,6 +51,7 @@ SRCS	=	ft_abs.c\
 			ft_strsub.c\
 			ft_strupper.c\
 			ft_toupper.c\
+			ft_tolower.c\
 			ft_utoa.c\
 			is_number.c\
 			get_next_line.c

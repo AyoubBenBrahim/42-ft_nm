@@ -512,7 +512,7 @@ void print_section_headers(t_file *file)
 
 void display_symtab(t_file *file)
 {
-    t_syms *syms = &(file->syms);
+    t_syms *syms = file->syms;
     Elf32_Sym *sym;
     char *name;
 

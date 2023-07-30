@@ -1,8 +1,11 @@
 objs/
 *.o
-.DS_Store
+*.DS_Store
 a.out
-a.out.dSYM/
+*.out.dSYM/
 *.a
 *.old
 .vscode/
+ft_nm
+elf.h
+test/
