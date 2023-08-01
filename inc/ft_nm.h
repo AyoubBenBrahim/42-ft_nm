@@ -35,6 +35,14 @@
 
 # define TO_LOWER(x)		(x | ' ')
 
+#define MAX_FILES 10
+
+typedef enum {
+    NO_SORT,
+    SORT_ORDER,
+    REVERSE_SORT,
+    UNDEFINED_SYMBOLS_ONLY
+} e_option;
 
 typedef struct
 {
@@ -85,9 +93,7 @@ typedef struct
 
     t_syms syms; //Pointer to the symbol table and string table information
 
-    // char *final_sym_name;
-    // uint64_t final_sym_addr;
-    // char final_sym_type;
+    e_option option;
 } t_file;
 
 /*
@@ -118,11 +124,12 @@ void parse_ehdr(t_file *file);
 void parse_shdr(t_file *file);
 void parse_symtab32(t_file *file);
 void parse_symtab64(t_file *file);
-void unmap_file(void *data, size_t data_size, int fd);
-void *map_file(int fd, size_t size);
+// void unmap_file(void *data, size_t data_size, int fd);
+void unmap_file(const char *path, void *data, size_t size, int fd);
+void *map_file(const char *path, int fd, size_t size);
 int open_file(const char *path);
 
-void error(const char *msg);
+// void error(const char *msg);
 
 
 
@@ -134,11 +141,15 @@ char get_symb_type_and_visibility(t_symb *symb);
 char get_symbol_section_char(uint16_t section, t_file *file);
 char get_symbol_binding_char(uint8_t binding);
 char get_symbol_type_char(uint32_t type);
-void sort_symbols_by_name(t_symb *symbols, size_t n_symbols);
-int compare_symbols_by_name(const void *a, const void *b);
+// void sort_symbols_by_name(t_symb *symbols, size_t n_symbols);
+// int compare_symbols_by_name(const void *a, const void *b);
 // void store_symb(t_file **file, char *name, uint64_t st_value, char type);
 
 
 void print_symboles32(t_file *file);
+void print_symboles64(t_file *file);
+
+void ft_qsort(t_symb *array, size_t size, int order);
+
 
 #endif

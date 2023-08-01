@@ -4,7 +4,9 @@ CC		=	gcc
 
 CFLAGS	=	-Werror -Wextra -Wall
 
-FUNCTIONS	=	ft_nm.c
+FUNCTIONS	=	ft_nm.c\
+				manageELF32.c\
+				manageELF64.c\
 				
 				
 
