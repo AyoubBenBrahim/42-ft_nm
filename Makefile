@@ -2,11 +2,12 @@ NAME	=	ft_nm
 
 CC		=	gcc
 
-CFLAGS	=	-Werror -Wextra -Wall
+CFLAGS	=	-Werror -Wextra -Wall #-g3 -fsanitize=address
 
 FUNCTIONS	=	ft_nm.c\
 				manageELF32.c\
 				manageELF64.c\
+				printer.c\
 				
 				
 

@@ -84,6 +84,33 @@ void parse_ehdr(t_file *file)
         file->is64 = true;
         file->ehdr64 = (Elf64_Ehdr *)(file->data);
     }
+
+    // =====
+
+    // if (ehdr->e_shoff > (size_t)file->stat.st_size)
+    // {
+    //     ft_printf("Invalid ELF section header offset\n");
+    //     // section header table goes past the end of the file
+    //     exit(1);
+    // }
+
+    if (ehdr->e_shnum == 0 || ehdr->e_shnum == SHN_UNDEF)
+    {
+        ft_printf("Invalid ELF section header count\n");
+        exit(1);
+    }
+
+    // if (ehdr->e_shentsize != sizeof(Elf64_Shdr) && ehdr->e_shentsize != sizeof(Elf32_Shdr)) // && ehdr->e_shentsize != 0
+    // {
+    //     ft_printf("Invalid ELF section header size\n");
+    //     exit(1);
+    // }
+
+    // if (ehdr->e_shstrndx == SHN_UNDEF)
+    // {
+    //     ft_printf("Invalid ELF section header string table index\n");
+    //     exit(1);
+    // }
 }
 
 // Parse the section header table of a file and save a pointer to the section header table
@@ -100,7 +127,7 @@ void parse_shdr(t_file *file)
         file->shdr64 = (Elf64_Shdr *)(file->data + file->ehdr64->e_shoff);
         if (file->ehdr64->e_shoff == 0 || file->ehdr64->e_shnum == 0)
         {
-            ft_printf("he file has no section header table\n");
+            ft_printf("The file has no section header table\n");
             exit(1);
         }
     }
@@ -110,16 +137,16 @@ void parse_shdr(t_file *file)
 
         if (file->ehdr32->e_shoff == 0 || file->ehdr32->e_shnum == 0)
         {
-            ft_printf("he file has no section header table\n");
+            ft_printf("The file has no section header table\n");
             exit(1);
         }
     }
 }
 
-void symboles_printer(t_file *file)
-{
-    printf("\n%s:\n", file->path);
-}
+// void symboles_printer(t_file *file)
+// {
+//     printf("\n%s:\n", file->path);
+// }
 
 void ft_qsort(t_symb *array, size_t size, int order)
 {
@@ -182,12 +209,24 @@ void manageELF(t_file files[], int n_files)
         if (files[i].is64)
         {
             parse_symtab64(&files[i]);
+            if (files[i].ehdr64->e_shoff > (size_t)files[i].stat.st_size)
+            {
+                ft_printf("Invalid ELF section header offset\n"); // section header table goes past the end of the file
+                exit(1);
+            }
             print_symboles64(&files[i]);
+            free(files[i].syms.symb);
         }
         else
         {
             parse_symtab32(&files[i]);
+            if (files[i].ehdr32->e_shoff > (size_t)files[i].stat.st_size)
+            {
+                ft_printf("Invalid ELF section header offset\n");
+                exit(1);
+            }
             print_symboles32(&files[i]);
+            free(files[i].syms.symb);
         }
     }
 }
@@ -206,7 +245,6 @@ void close_files(t_file files[], int n_files)
 *** while the | operator is used to check if a combination of flags is set.
 */
 
-
 int main(int argc, char *argv[])
 {
     t_file files[MAX_FILES];
@@ -224,7 +262,7 @@ int main(int argc, char *argv[])
     //     exit(1);
     // }
     ft_memset(files, 0, sizeof(files));
-    // [a g u r p]
+    // [p r u a g]
     //  -p     Don't sort; display in symbol-table order.
     //  -r     Sort in reverse order.
     //  -u     Display only undefined symbols.
@@ -241,6 +279,8 @@ int main(int argc, char *argv[])
             option = REVERSE_SORT;
         else if (ft_strcmp(argv[i], "-u") == 0)
             option = UNDEFINED_SYMBOLS_ONLY;
+        else if (ft_strcmp(argv[i], "-a") == 0)
+            option = DISPLAY_ALL;
         else
         {
             if (n_files >= MAX_FILES)

@@ -28,7 +28,6 @@
 // #include "../inc/elf.h"
 
 #include <stdbool.h>
-
 #include <errno.h>
 
 #include <stdio.h>
@@ -38,10 +37,11 @@
 #define MAX_FILES 10
 
 typedef enum {
-    NO_SORT,
+    DISPLAY_ALL, // a
+    NO_SORT,     // p
     SORT_ORDER,
-    REVERSE_SORT,
-    UNDEFINED_SYMBOLS_ONLY
+    REVERSE_SORT, // r
+    UNDEFINED_SYMBOLS_ONLY // u
 } e_option;
 
 typedef struct

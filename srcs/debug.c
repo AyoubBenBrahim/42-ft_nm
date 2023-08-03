@@ -1,4 +1,4 @@
-#include "../inc/ft_nm.h"
+#include "ft_nm.h"
 
 void print_header32(t_file *file)
 {
@@ -512,7 +512,7 @@ void print_section_headers(t_file *file)
 
 void display_symtab(t_file *file)
 {
-    t_syms *syms = file->syms;
+    t_syms *syms = &file->syms;
     Elf32_Sym *sym;
     char *name;
 

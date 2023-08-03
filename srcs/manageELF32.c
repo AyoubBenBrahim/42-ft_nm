@@ -1,48 +1,11 @@
 
 #include "ft_nm.h"
 
-void print_symboles32(t_file *file)
-{
-    // Print the sorted symbols
-    printf("\nSymbol table '%s':\n", file->path);
-
-    // qsort(file->syms.symb, file->syms.n_syms_count, sizeof(t_symb), compare_symbols_by_name);
-
-    if (file->option == NO_SORT)
-        ft_qsort(file->syms.symb, file->syms.n_syms_count, 0);
-    else if (file->option == SORT_ORDER)
-        ft_qsort(file->syms.symb, file->syms.n_syms_count, 1);
-    else if (file->option == REVERSE_SORT)
-        ft_qsort(file->syms.symb, file->syms.n_syms_count, -1);
-    else if (file->option == UNDEFINED_SYMBOLS_ONLY)
-    {
-        printf("UNDEFINED_SYMBOLS_ONLY not yet implemented\n");
-        exit(1);
-    }
-
-    // ft_qsort(file->syms.symb, file->syms.n_syms_count, 1);
-    for (size_t i = 0; i < file->syms.n_syms_count; i++)
-    {
-        u_int16_t shndx = file->syms.symb[i].section_tab_index;
-
-        char type = file->syms.symb[i].type_char;
-        char *name = file->syms.symb[i].name;
-        uint32_t value = file->syms.symb[i].value;
-        if (shndx == SHN_ABS || name == NULL || strcmp(name, "") == 0)
-            continue;
-        if (shndx == SHN_UNDEF)
-            printf("%8c %c %s\n", ' ', type, name);
-        else
-            printf("%08x %c %s\n", value, type, name);
-    }
-}
-
 char get_symbol_section_char(uint16_t section, t_file *file)
 {
     uint32_t sh_type;
     uint32_t sh_flags;
 
-    printf("start get_symbol_section_char\n");
     if (file->is64)
     {
         sh_type = file->shdr64[section].sh_type;
@@ -53,8 +16,6 @@ char get_symbol_section_char(uint16_t section, t_file *file)
         sh_type = file->shdr32[section].sh_type;
         sh_flags = file->shdr32[section].sh_flags;
     }
-
-
 
     char c = '?';
 
@@ -118,20 +79,18 @@ char get_symbol_section_char(uint16_t section, t_file *file)
     case SHT_GROUP:
         c = 'N';
         break;
-    case SHT_GNU_verneed: //
-        c = 'R';          //
-        break;            //
+    case SHT_GNU_verneed:
+        c = 'R';
+        break;
     default:
         c = '?';
         break;
     }
-    printf("end get_symbol_section_char\n");
     return c;
 }
 
 char get_symb_type_and_visibility(t_symb *symb)
 {
-    // printf("start get_symb_type_and_visibility\n");
     uint16_t shndx = symb->section_tab_index; // t_shndx
     // uint32_t type = ELF32_ST_TYPE(symb->type);    // THIS IS THE STUPIDEST THING I'VE EVER DONE
     uint32_t type = symb->type;
@@ -162,17 +121,14 @@ char get_symb_type_and_visibility(t_symb *symb)
     else if (type == STT_GNU_IFUNC)
         c = 'i';
 
-    // printf("end get_symb_type_and_visibility\n");
     return c;
 }
 
 char determin_symb(t_file *file, t_symb *symb)
 {
-    // printf("start determin_symb\n");
     char c = get_symb_type_and_visibility(symb);
     if (c == '?')
         c = get_symbol_section_char(symb->section_tab_index, file);
-    // printf("end determin_symb\n");
     if (symb->binding == STB_LOCAL)
         c = TO_LOWER(c);
     return c;

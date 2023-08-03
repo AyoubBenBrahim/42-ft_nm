@@ -8,6 +8,7 @@ RUN apt-get update && \
                        clang \
                        make \
                        cmake \
+                       libc6-dev-i386\
                        libssl-dev \
                        libreadline-dev \
                        libncurses-dev \
@@ -18,11 +19,11 @@ RUN apt-get update && \
                        git \
                        curl \
                        vim \
-                       binutils \
                        file \
-                       bsdmainutils
+                       binutils \
+                       bsdmainutils\
+                       valgrind 
                     #    gdb \
-                    #    valgrind \
 
 # Set the working directory
 WORKDIR /ft_nm

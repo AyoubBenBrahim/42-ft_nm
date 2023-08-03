@@ -1,43 +1,6 @@
 
 #include "ft_nm.h"
 
-void print_symboles64(t_file *file)
-{
-    // Print the sorted symbols
-    printf("\nSymbol table '%s':\n", file->path);
-
-    // qsort(file->syms.symb, file->syms.n_syms_count, sizeof(t_symb), compare_symbols_by_name);
-
-    if (file->option == NO_SORT)
-        ft_qsort(file->syms.symb, file->syms.n_syms_count, 0);
-    else if (file->option == SORT_ORDER)
-        ft_qsort(file->syms.symb, file->syms.n_syms_count, 1);
-    else if (file->option == REVERSE_SORT)
-        ft_qsort(file->syms.symb, file->syms.n_syms_count, -1);
-    else if (file->option == UNDEFINED_SYMBOLS_ONLY)
-    {
-        printf("UNDEFINED_SYMBOLS_ONLY not yet implemented\n");
-        exit(1);
-    }
-
-    // ft_qsort(file->syms.symb, file->syms.n_syms_count, 1);
-    for (size_t i = 0; i < file->syms.n_syms_count; i++)
-    {
-        u_int16_t shndx = file->syms.symb[i].section_tab_index;
-
-        char type = file->syms.symb[i].type_char;
-        char *name = file->syms.symb[i].name;
-        uint64_t value = file->syms.symb[i].value;
-        if (shndx == SHN_ABS || name == NULL || strcmp(name, "") == 0)
-            continue;
-        if (shndx == SHN_UNDEF)
-            printf("%16c %c %s\n", ' ', type, name);
-        else
-            printf("%016lx %c %s\n", value, type, name);
-    }
-}
-
-
 void parse_symtab64(t_file *file)
 {
     size_t i;
@@ -85,6 +48,7 @@ void parse_symtab64(t_file *file)
             }
             break;
         }
+
     }
 }
 
