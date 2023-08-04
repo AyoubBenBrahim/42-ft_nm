@@ -1,11 +1,5 @@
 #include "ft_nm.h"
 
-// void error(const char *msg)
-// {
-//     fprintf(stderr, "Error: %s (%s)\n", msg, strerror(errno));
-//     exit(1);
-// }
-
 int open_file(const char *path)
 {
     int fd = open(path, O_RDONLY);
@@ -48,12 +42,13 @@ void unmap_file(const char *path, void *data, size_t size, int fd)
 void parse_ehdr(t_file *file)
 {
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)(file->data);
+
     if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
         ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
         ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
         ehdr->e_ident[EI_MAG3] != ELFMAG3)
     {
-        ft_printf("Invalid ELF header\n");
+        ft_printf("Invalid ELF header/magic number\n");
         exit(1);
     }
     if (ehdr->e_ident[EI_CLASS] != ELFCLASS32 && ehdr->e_ident[EI_CLASS] != ELFCLASS64)
@@ -68,7 +63,7 @@ void parse_ehdr(t_file *file)
         exit(1);
     }
 
-    if (ehdr->e_type != ET_REL && ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN && ehdr->e_type != ET_CORE)
+    if (ehdr->e_type != ET_REL && ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN && ehdr->e_type != ET_CORE && ehdr->e_type != ET_NONE)
     {
         ft_printf("Invalid ELF type\n");
         exit(1);
@@ -78,39 +73,22 @@ void parse_ehdr(t_file *file)
     {
         file->is64 = false;
         file->ehdr32 = (Elf32_Ehdr *)(file->data);
+        if (file->ehdr32->e_shoff == 0)
+        {
+            ft_printf("The file has no section header table\n");
+            exit(1);
+        }
     }
     else
     {
         file->is64 = true;
         file->ehdr64 = (Elf64_Ehdr *)(file->data);
+        if (file->ehdr64->e_shoff == 0)
+        {
+            ft_printf("The file has no section header table\n");
+            exit(1);
+        }
     }
-
-    // =====
-
-    // if (ehdr->e_shoff > (size_t)file->stat.st_size)
-    // {
-    //     ft_printf("Invalid ELF section header offset\n");
-    //     // section header table goes past the end of the file
-    //     exit(1);
-    // }
-
-    if (ehdr->e_shnum == 0 || ehdr->e_shnum == SHN_UNDEF)
-    {
-        ft_printf("Invalid ELF section header count\n");
-        exit(1);
-    }
-
-    // if (ehdr->e_shentsize != sizeof(Elf64_Shdr) && ehdr->e_shentsize != sizeof(Elf32_Shdr)) // && ehdr->e_shentsize != 0
-    // {
-    //     ft_printf("Invalid ELF section header size\n");
-    //     exit(1);
-    // }
-
-    // if (ehdr->e_shstrndx == SHN_UNDEF)
-    // {
-    //     ft_printf("Invalid ELF section header string table index\n");
-    //     exit(1);
-    // }
 }
 
 // Parse the section header table of a file and save a pointer to the section header table
@@ -143,43 +121,6 @@ void parse_shdr(t_file *file)
     }
 }
 
-// void symboles_printer(t_file *file)
-// {
-//     printf("\n%s:\n", file->path);
-// }
-
-void ft_qsort(t_symb *array, size_t size, int order)
-{
-    if (size <= 1 || array == NULL || order == 0)
-    {
-        return;
-    }
-    t_symb pivot = array[size / 2];
-    t_symb *left = array;
-    t_symb *right = array + size - 1;
-    while (left <= right)
-    {
-        while (order * ft_strcmp(left->name, pivot.name) < 0)
-        {
-            left++;
-        }
-        while (order * ft_strcmp(right->name, pivot.name) > 0)
-        {
-            right--;
-        }
-        if (left <= right)
-        {
-            t_symb tmp = *left;
-            *left = *right;
-            *right = tmp;
-            left++;
-            right--;
-        }
-    }
-    ft_qsort(array, right - array + 1, order);
-    ft_qsort(left, array + size - left, order);
-}
-
 void get_data_and_size(t_file *file)
 {
     if (fstat(file->fd, &file->stat) == -1)
@@ -205,16 +146,18 @@ void manageELF(t_file files[], int n_files)
 
         get_data_and_size(&files[i]);
         parse_ehdr(&files[i]);
+        // print_header32(&files[i]);
         parse_shdr(&files[i]);
         if (files[i].is64)
         {
             parse_symtab64(&files[i]);
             if (files[i].ehdr64->e_shoff > (size_t)files[i].stat.st_size)
             {
-                ft_printf("Invalid ELF section header offset\n"); // section header table goes past the end of the file
+                // section header table goes past the end of the file
+                ft_printf("Invalid ELF section header offset\n"); 
                 exit(1);
             }
-            print_symboles64(&files[i]);
+            print_symboles64(&files[i], n_files);
             free(files[i].syms.symb);
         }
         else
@@ -225,13 +168,12 @@ void manageELF(t_file files[], int n_files)
                 ft_printf("Invalid ELF section header offset\n");
                 exit(1);
             }
-            print_symboles32(&files[i]);
+            print_symboles32(&files[i], n_files);
             free(files[i].syms.symb);
         }
     }
 }
 
-// Close multiple files and unmap them from memory
 void close_files(t_file files[], int n_files)
 {
     int i;
@@ -239,37 +181,17 @@ void close_files(t_file files[], int n_files)
         unmap_file(files[i].path, files[i].data, files[i].data_size, files[i].fd);
 }
 
-/*
-*** Function to determine the character corresponding to symbol section
-*** The & operator is used to check if a certain flag is set in the section flags,
-*** while the | operator is used to check if a combination of flags is set.
-*/
-
 int main(int argc, char *argv[])
 {
     t_file files[MAX_FILES];
     int i, n_files;
 
-    // Parse command-line arguments and open the input files
-    if (argc <= 1)
-    {
-        fprintf(stderr, "Usage: %s <file1> <file2> ...\n", argv[0]);
-        exit(1);
-    }
-    // if (argc - 1 > MAX_FILES)
-    // {
-    //     fprintf(stderr, "Error: too many input files (maximum is %d)\n", MAX_FILES);
-    //     exit(1);
-    // }
     ft_memset(files, 0, sizeof(files));
     // [p r u a g]
     //  -p     Don't sort; display in symbol-table order.
     //  -r     Sort in reverse order.
     //  -u     Display only undefined symbols.
-    // for (i = 1; i < argc; i++)
-    // {
-    //     files[i - 1].path = argv[i];
-    // }
+    //  -a     Display all symbols.
     e_option option = SORT_ORDER;
     for (i = 1, n_files = 0; i < argc; i++)
     {
@@ -281,11 +203,13 @@ int main(int argc, char *argv[])
             option = UNDEFINED_SYMBOLS_ONLY;
         else if (ft_strcmp(argv[i], "-a") == 0)
             option = DISPLAY_ALL;
+        else if (ft_strcmp(argv[i], "-g") == 0)
+            option = EXTERNAL_ONLY;
         else
         {
             if (n_files >= MAX_FILES)
             {
-                fprintf(stderr, "Error: too many input files (maximum is %d)\n", MAX_FILES);
+                ft_printf("Error: too many input files (maximum is %d)\n", MAX_FILES);
                 exit(1);
             }
             files[n_files].path = argv[i];
@@ -293,19 +217,14 @@ int main(int argc, char *argv[])
             n_files++;
         }
     }
+    if (n_files == 0)
+    {
+        files[n_files].path = "a.out";
+        files[n_files].option = option;
+        n_files++;
+    }
 
-    // manageELF(files, argc - 1);
     manageELF(files, n_files);
-
-    // if (files[0].is64)
-    // {
-
-    // }
-    // else
-    // {
-
-    // }
-    // Close the input files
     close_files(files, n_files);
 
     return 0;

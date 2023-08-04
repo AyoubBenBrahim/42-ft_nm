@@ -54,7 +54,8 @@ SRCS	=	ft_abs.c\
 			ft_tolower.c\
 			ft_utoa.c\
 			is_number.c\
-			get_next_line.c
+			get_next_line.c\
+			ft_strpbrk.c\
 
 OBJDIR	=		objs
 

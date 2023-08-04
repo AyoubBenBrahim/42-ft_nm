@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ft_nm.h                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ayb***** <ayb*****@student.1337.ma>        +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/12/01 15:08:03 by ayb*****          #+#    #+#             */
-/*   Updated: 2020/01/25 20:17:18 by ayb*****         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef FT_NM_H
 #define FT_NM_H
@@ -19,29 +8,25 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <limits.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <elf.h>
-// # include <linux/elf.h>
-// #include "../inc/elf.h"
-
 #include <stdbool.h>
 #include <errno.h>
-
-#include <stdio.h>
+// #include <stdio.h>
 
 # define TO_LOWER(x)		(x | ' ')
 
-#define MAX_FILES 10
+#define MAX_FILES 12
 
 typedef enum {
     DISPLAY_ALL, // a
     NO_SORT,     // p
     SORT_ORDER,
     REVERSE_SORT, // r
-    UNDEFINED_SYMBOLS_ONLY // u
+    UNDEFINED_SYMBOLS_ONLY, // u
+    EXTERNAL_ONLY // g
 } e_option;
 
 typedef struct
@@ -49,7 +34,7 @@ typedef struct
     char *name;                 // Symbol name
     uint64_t size;              // Symbol size
     uint64_t value;             // Symbol value
-    uint16_t section_tab_index; // Section index
+    uint16_t section_tab_index; // Section index 
 
     uint8_t type;
     uint8_t binding;
@@ -100,17 +85,8 @@ typedef struct
 **** Debugging functions
 */
 
-// void print_header32(t_file *file);
+void print_header32(t_file *file);
 // void print_header64(t_file *file);
-
-// void print_section_headers(t_file *file);
-// void print_symbols(t_file *file);
-
-// void display_symtab(t_file *file);
-
-// char *get_symbol_type(unsigned char info);
-// char *get_symbol_bind(unsigned char info);
-// char *get_symbol_visibility(unsigned char other);
 
 /*
 **** Parsing functions
@@ -119,37 +95,30 @@ typedef struct
 void get_data_and_size(t_file *file);
 void manageELF(t_file files[], int n_files);
 void close_files(t_file files[], int n_files);
-
 void parse_ehdr(t_file *file);
 void parse_shdr(t_file *file);
 void parse_symtab32(t_file *file);
 void parse_symtab64(t_file *file);
-// void unmap_file(void *data, size_t data_size, int fd);
 void unmap_file(const char *path, void *data, size_t size, int fd);
 void *map_file(const char *path, int fd, size_t size);
 int open_file(const char *path);
 
-// void error(const char *msg);
+/*
+**** Symbol table handling functions
+*/
 
-
-
-
-// char determin_symb(t_file *file, t_syms *syms, t_symbol *symb);
 char determin_symb(t_file *file, t_symb *symb);
-// char get_symb_type_and_visibility(t_file *file);
 char get_symb_type_and_visibility(t_symb *symb);
 char get_symbol_section_char(uint16_t section, t_file *file);
 char get_symbol_binding_char(uint8_t binding);
 char get_symbol_type_char(uint32_t type);
-// void sort_symbols_by_name(t_symb *symbols, size_t n_symbols);
-// int compare_symbols_by_name(const void *a, const void *b);
-// void store_symb(t_file **file, char *name, uint64_t st_value, char type);
-
-
-void print_symboles32(t_file *file);
-void print_symboles64(t_file *file);
-
 void ft_qsort(t_symb *array, size_t size, int order);
 
+/*
+**** Printing functions
+*/
+
+void print_symboles32(t_file *file, int n_files);
+void print_symboles64(t_file *file, int n_files);
 
 #endif

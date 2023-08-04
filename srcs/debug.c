@@ -512,20 +512,41 @@ void print_section_headers(t_file *file)
 
 void display_symtab(t_file *file)
 {
-    t_syms *syms = &file->syms;
-    Elf32_Sym *sym;
-    char *name;
-
-    printf("Symbol table '%s' contains %zu entries:\n", file->path, syms->n_syms);
-    printf("%6s: %8s %8s %3s %3s %3s %s\n", "Num", "Value", "Size", "Type", "Bind", "Vis", "Name");
-
-    for (size_t i = 0; i < syms->n_syms; i++)
+    if (file->ehdr32->e_ident[EI_CLASS] == ELFCLASS32)
     {
-        sym = (Elf32_Sym *)((char *)syms->symtab + i * sizeof(Elf32_Sym));
-        name = (char *)syms->strtab + sym->st_name;
+        for (size_t i = 0; i < file->ehdr32->e_shnum; i++)
+        {
+            if (file->shdr32[i].sh_type == SHT_SYMTAB)
+            {
+                Elf32_Sym *symtab = (Elf32_Sym *)(file->data + file->shdr32[i].sh_offset);
+                size_t n_syms = file->shdr32[i].sh_size / sizeof(Elf32_Sym);
 
-        printf("%6zu: %08x %08x %3s %3s %3s %s\n", i, sym->st_value, sym->st_size,
-               get_symbol_type(sym->st_info), get_symbol_bind(sym->st_info), get_symbol_visibility(sym->st_other), name);
+                char *strtab = (char *)(file->data + file->shdr32[file->shdr32[i].sh_link].sh_offset);
+
+                for (size_t j = 0; j < n_syms; j++)
+                {
+                    ft_printf("%s\n", strtab + symtab[j].st_name);
+                }
+            }
+        }
+    }
+    else if (file->ehdr32->e_ident[EI_CLASS] == ELFCLASS64)
+    {
+        for (size_t i = 0; i < file->ehdr64->e_shnum; i++)
+        {
+            if (file->shdr64[i].sh_type == SHT_SYMTAB)
+            {
+                Elf64_Sym *symtab = (Elf64_Sym *)(file->data + file->shdr64[i].sh_offset);
+                size_t n_syms = file->shdr64[i].sh_size / sizeof(Elf64_Sym);
+
+                char *strtab = (char *)(file->data + file->shdr64[file->shdr64[i].sh_link].sh_offset);
+
+                for (size_t j = 0; j < n_syms; j++)
+                {
+                    ft_printf("%s\n", strtab + symtab[j].st_name);
+                }
+            }
+        }
     }
 }
 

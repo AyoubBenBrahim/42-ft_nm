@@ -1,5 +1,6 @@
 objs/
 *.o
+*.txt
 *.DS_Store
 a.out
 *.out.dSYM/

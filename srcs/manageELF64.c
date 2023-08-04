@@ -1,4 +1,3 @@
-
 #include "ft_nm.h"
 
 void parse_symtab64(t_file *file)
@@ -42,9 +41,7 @@ void parse_symtab64(t_file *file)
                 syms->symb[j].type_char = determin_symb(file, &syms->symb[j]);
             
                 t_symb *symb = &syms->symb[j];
-
                 syms->symb[syms->n_syms_count++] = *symb;
-                // store_symb(&file, syms->symb[j].name, syms->symb[j].value, c);
             }
             break;
         }

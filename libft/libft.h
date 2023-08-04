@@ -67,6 +67,7 @@ void                ft_strupper(char *str);
 int                 ft_toupper(int c);
 int                 ft_tolower(int c);
 bool                is_in_range(int value, int lower_bound, int upper_bound);
+char*               ft_strpbrk(const char* str, const char* chars);
 
 
 #endif
