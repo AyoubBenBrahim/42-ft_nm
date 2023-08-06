@@ -28,7 +28,9 @@ Compilers and assemblers create object files containing the generated bi- * nary
 
 symbols are generated in the compile and assembly phases, and then used in the linking and loading phases to create a complete executable or shared library.
 
- ![img1](img/loader.jpeg)
+ ![img0](img/loader.jpeg)
+
+ ![img2](img/linker.jpeg)
 
 ```
 $ nm hello.o
@@ -68,7 +70,7 @@ sections vs segments(program)
 
 sections and segments overlap
 
- ![img1](img/img1.png)
+ ![img3](img/img1.png)
 
 sections(file view of the binary) = describe the layout of the binary in its file form , while  the seg describe the binary as it looks when it is loaded into memory. 
 
@@ -147,6 +149,8 @@ Function symbols: These symbols represent functions or procedures.
 Section symbols: These symbols represent sections of a program or library, such as code, data, or debug information.
 
 File symbols: These symbols represent files or libraries that are being linked together.
+
+![img4](img/symbol.jpeg)
 
 => Symbol binding refers to the visibility and accessibility of a symbol.
  The most common symbol bindings include:
