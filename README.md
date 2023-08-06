@@ -22,14 +22,13 @@ mmap man page https://man7.org/linux/man-pages/man2/mmap.2.html
 
 fstat man https://linux.die.net/man/2/fstat
 
-
-
-
-
+===
 
 Compilers and assemblers create object files containing the generated bi- * nary code and data for a source file. Linkers combine multiple object files * into one, loaders take object files and load them into memory.
 
 symbols are generated in the compile and assembly phases, and then used in the linking and loading phases to create a complete executable or shared library.
+
+ ![img1](img/loader.jpeg)
 
 ```
 $ nm hello.o
@@ -60,12 +59,14 @@ ELF File Header https://youtu.be/5MJW71jftQU
 
 ELF Section Header https://youtu.be/L9okXJH5l2Y
 
+ELF Format Cheatsheet
+
+https://gist.github.com/x0nu11byt3/bcb35c3de461e5fb66173071a2379779
+
 
 sections vs segments(program)
 
 sections and segments overlap
-
-()[]
 
  ![img1](img/img1.png)
 
@@ -80,7 +81,6 @@ ro data = readOnly data
 data = initialized global vars
 
 bss = uninitialized vars 
-
 
 
 https://youtu.be/hoLYnS2jOV8
@@ -164,7 +164,9 @@ The role of symbol types and bindings is to provide information to the linker an
 The & operator is used to check if a certain flag is set in the section flags, while the | operator is used to check if a combination of flags is set.
 
 For example, in the line 
+
 `if ((file->shdr32[section].sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))`
+
  the & operator is used to check if both SHF_ALLOC and SHF_WRITE are set in the section flags, while the == operator is used to check if both flags are set and no other flags are set.
 
 In the line if ((file->shdr32[section].sh_flags & (SHF_ALLOC | SHF_EXECINSTR | SHF_WRITE)) == SHF_ALLOC), the & operator is used to check if the SHF_ALLOC flag is set and the SHF_EXECINSTR and SHF_WRITE flags are not set. The == operator is used to check if only the SHF_ALLOC flag is set and no other flags are set.

@@ -19,5 +19,5 @@ volumes:
   driver_opts:
     type: 'none'
     o: 'bind'
-    device: '/Users/aybouras/Desktop/42-ft_nm'
+    device: '/Users/my_login/Desktop/42-ft_nm'
 
