@@ -2,12 +2,9 @@ nm - an abbreviation for "names" or "name list" -  Display the Symbol Table of a
 
 a tool for examining the contents of object files, archives, and shared libraries.
 
+good intro (linker vs the theatre analogy)
 
-nm /bin/ls
-nm: /bin/ls: no symbols
-
-nm /usr/lib/gcc/x86_64-linux-gnu/8/
-nm: Warning: '/usr/lib/gcc/x86_64-linux-gnu/8/' is a directory
+https://youtu.be/eQ0KOT_J8Sk
 
 ELF — Linux manual page
 https://man7.org/linux/man-pages/man5/elf.5.html

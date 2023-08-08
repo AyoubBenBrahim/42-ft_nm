@@ -38,14 +38,12 @@ void parse_symtab64(t_file *file)
                 syms->symb[j].value = symtab[j].st_value;
                 syms->symb[j].section_tab_index = symtab[j].st_shndx;
 
-                syms->symb[j].type_char = determin_symb(file, &syms->symb[j]);
-            
+                syms->symb[j].type_char = determine_symb(file, &syms->symb[j]);
+
                 t_symb *symb = &syms->symb[j];
                 syms->symb[syms->n_syms_count++] = *symb;
             }
             break;
         }
-
     }
 }
-

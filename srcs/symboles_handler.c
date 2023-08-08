@@ -109,7 +109,7 @@ char get_symb_type_and_visibility(t_symb *symb)
     return c;
 }
 
-char determin_symb(t_file *file, t_symb *symb)
+char determine_symb(t_file *file, t_symb *symb)
 {
     char c = get_symb_type_and_visibility(symb);
     if (c == '?')

@@ -16,17 +16,18 @@
 #include <errno.h>
 // #include <stdio.h>
 
-# define TO_LOWER(x)		(x | ' ')
+#define TO_LOWER(x) (x | ' ')
 
 #define MAX_FILES 12
 
-typedef enum {
+typedef enum
+{
     DISPLAY_ALL, // a
     NO_SORT,     // p
     SORT_ORDER,
-    REVERSE_SORT, // r
+    REVERSE_SORT,           // r
     UNDEFINED_SYMBOLS_ONLY, // u
-    EXTERNAL_ONLY // g
+    EXTERNAL_ONLY           // g
 } e_option;
 
 typedef struct
@@ -34,27 +35,26 @@ typedef struct
     char *name;                 // Symbol name
     uint64_t size;              // Symbol size
     uint64_t value;             // Symbol value
-    uint16_t section_tab_index; // Section index 
+    uint16_t section_tab_index; // Section index
 
     uint8_t type;
     uint8_t binding;
     uint8_t visibility;
 
     char type_char;
-    
+
     // uint32_t flags;
 } t_symb;
 
 typedef struct
 {
-    size_t n_syms;      // Number of symbols in the symbol table
-    size_t n_syms_count;  // Number of symbols actually stored
-    
+    size_t n_syms;       // Number of symbols in the symbol table
+    size_t n_syms_count; // Number of symbols actually stored
+
     void *symtab;       // Pointer to the symbol table
     size_t symtab_size; // Size of the symbol table in bytes
     char *strtab;       // Pointer to the string table
     size_t strtab_size; // Size of the string table in bytes
-
 
     t_symb *symb; // Pointer to the symbol table
 
@@ -76,7 +76,7 @@ typedef struct
     Elf32_Shdr *shdr32;
     Elf32_Ehdr *ehdr32;
 
-    t_syms syms; //Pointer to the symbol table and string table information
+    t_syms syms; // Pointer to the symbol table and string table information
 
     e_option option;
 } t_file;
@@ -107,7 +107,7 @@ int open_file(const char *path);
 **** Symbol table handling functions
 */
 
-char determin_symb(t_file *file, t_symb *symb);
+char determine_symb(t_file *file, t_symb *symb);
 char get_symb_type_and_visibility(t_symb *symb);
 char get_symbol_section_char(uint16_t section, t_file *file);
 char get_symbol_binding_char(uint8_t binding);

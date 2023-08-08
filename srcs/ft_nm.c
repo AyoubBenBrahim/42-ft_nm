@@ -38,7 +38,6 @@ void unmap_file(const char *path, void *data, size_t size, int fd)
     }
 }
 
-// Parse the ELF header of a file and save a pointer to the ELF header
 void parse_ehdr(t_file *file)
 {
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)(file->data);
@@ -91,7 +90,6 @@ void parse_ehdr(t_file *file)
     }
 }
 
-// Parse the section header table of a file and save a pointer to the section header table
 /*
  * man elf:
  * The ELF header's e_shoff member gives the
@@ -153,8 +151,8 @@ void manageELF(t_file files[], int n_files)
             parse_symtab64(&files[i]);
             if (files[i].ehdr64->e_shoff > (size_t)files[i].stat.st_size)
             {
-                // section header table goes past the end of the file
-                ft_printf("Invalid ELF section header offset\n"); 
+                // "section header table goes past the end of the file"
+                ft_printf("Invalid ELF section header offset\n");
                 exit(1);
             }
             print_symboles64(&files[i], n_files);
