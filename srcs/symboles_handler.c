@@ -28,16 +28,8 @@ char get_symbol_section_char(uint16_t section, t_file *file)
     {
     case SHT_NOBITS:
         if (sh_flags & (SHF_ALLOC | SHF_WRITE))
-        {
-            // if (sh_flags & SHF_IA_64_SHORT)
-            //     c = 'S'; // Section with allocated but uninitialized space
-            // else
             c = 'B'; // Section with allocated but zero-initialized or uninitialized / bss
-        }
         break;
-    //   case SHT_NULL:
-    //     c = 'N'; // Null section
-    //     break;
     case SHT_PROGBITS:
         if (sh_flags & SHF_ALLOC)
         {
@@ -76,7 +68,8 @@ char get_symbol_section_char(uint16_t section, t_file *file)
 char get_symb_type_and_visibility(t_symb *symb)
 {
     uint32_t shndx = symb->section_tab_index; // t_shndx
-    // uint32_t type = ELF32_ST_TYPE(symb->type);    // THIS IS THE STUPIDEST THING I'VE EVER DONE
+    // THIS IS THE STUPIDEST THING I'VE EVER DONE, evaluates to ELF32_ST_TYPE(ELF32_ST_TYPE(symb->type))
+    // uint32_t type = ELF32_ST_TYPE(symb->type);    
     uint32_t type = symb->type;
     uint8_t binding = symb->binding;
     uint8_t visibility = symb->visibility;
