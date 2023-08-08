@@ -66,7 +66,7 @@ void print_symboles32(t_file *file, int n_files)
         return;
     }
 
-    // ft_qsort(file->syms.symb, file->syms.n_syms_count, 1);
+
     for (size_t i = 0; i < file->syms.n_syms_count; i++)
     {
         u_int16_t shndx = file->syms.symb[i].section_tab_index;
@@ -74,8 +74,6 @@ void print_symboles32(t_file *file, int n_files)
         char type = file->syms.symb[i].type_char;
         char *name = file->syms.symb[i].name;
         uint32_t value = file->syms.symb[i].value;
-        // if (shndx == SHN_ABS || name == NULL || ft_strcmp(name, "") == 0)
-        //     continue;
         if (type == 'a' || name == NULL || ft_strcmp(name, "") == 0)
             continue;
         if (shndx == SHN_UNDEF)
@@ -160,8 +158,6 @@ void print_symboles64(t_file *file, int n_files)
         char type = file->syms.symb[i].type_char;
         char *name = file->syms.symb[i].name;
         uint64_t value = file->syms.symb[i].value;
-        // if (type == 'a' || name == NULL || ft_strcmp(name, "") == 0) //
-        //     continue;
         if (shndx == SHN_ABS || name == NULL || ft_strcmp(name, "") == 0)
             continue;
         if (shndx == SHN_UNDEF)
