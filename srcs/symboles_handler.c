@@ -68,8 +68,6 @@ char get_symbol_section_char(uint16_t section, t_file *file)
 char get_symb_type_and_visibility(t_symb *symb)
 {
     uint32_t shndx = symb->section_tab_index; // t_shndx
-    // THIS IS THE STUPIDEST THING I'VE EVER DONE, evaluates to ELF32_ST_TYPE(ELF32_ST_TYPE(symb->type))
-    // uint32_t type = ELF32_ST_TYPE(symb->type);    
     uint32_t type = symb->type;
     uint8_t binding = symb->binding;
     uint8_t visibility = symb->visibility;
@@ -102,14 +100,64 @@ char get_symb_type_and_visibility(t_symb *symb)
     return c;
 }
 
+char get_symb_based_on_section(t_file *file, uint16_t section, const char *name)
+{
+
+    uint32_t sh_flag = (file->is64) ? file->shdr64[section].sh_flags : file->shdr32[section].sh_flags;
+    int ret = get_section_name(sh_flag, name);
+
+    if (is_in_range(ret, 0, 2))
+        return 'A';
+    else if (is_in_range(ret, 3, 5))
+        return 'B';
+    else if (is_in_range(ret, 6, 20))
+        return 'D';
+    else if (is_in_range(ret, 21, 27))
+        return 'N';
+    else if (is_in_range(ret, 28, 41))
+        return 'R';
+    else if (is_in_range(ret, 42, 53))
+        return 'T';
+
+    return '?';
+}
+
+// this section names have the symbole type 'N' but uppercase
+bool isNameMatch(const char *name)
+{
+    char *strings[] = {
+        ".debug_abbrev",
+        ".debug_aranges",
+        ".debug_frame",
+        ".debug_info",
+        ".debug_line",
+        ".debug_loc",
+        ".debug_pubnames",
+        ".debug_ranges",
+        ".debug_str"};
+    int numStrings = sizeof(strings) / sizeof(strings[0]);
+    for (int i = 0; i < numStrings; i++)
+    {
+        if (ft_strcmp(name, strings[i]) == 0)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 char determine_symb(t_file *file, t_symb *symb)
 {
     char c = get_symb_type_and_visibility(symb);
     if (c == '?')
         c = get_symbol_section_char(symb->section_tab_index, file);
 
+    if (symb->name[0] == '.' && symb->sh_type != SHT_SYMTAB)
+        c = get_symb_based_on_section(file, symb->section_tab_index, symb->name);
+
     if (c == '?')
         c = 'T';
 
-    return ((symb->binding == STB_LOCAL) ? TO_LOWER(c) : c);
+    return ((symb->binding == STB_LOCAL && !isNameMatch(symb->name)) ? TO_LOWER(c) : c);
 }

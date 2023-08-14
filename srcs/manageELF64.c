@@ -6,6 +6,8 @@ void parse_symtab64(t_file *file)
     t_syms *syms = &file->syms;
     ft_memset(syms, 0, sizeof(t_syms));
 
+    const char *string_table = (char *)(file->data + file->shdr64[file->ehdr64->e_shstrndx].sh_offset);
+
     for (i = 0; i < file->ehdr64->e_shnum; i++)
     {
         if (file->shdr64[i].sh_type == SHT_SYMTAB)
@@ -37,6 +39,14 @@ void parse_symtab64(t_file *file)
                 syms->symb[j].size = symtab[j].st_size;
                 syms->symb[j].value = symtab[j].st_value;
                 syms->symb[j].section_tab_index = symtab[j].st_shndx;
+
+                syms->symb[j].sh_type = SHT_SYMTAB;
+
+                if (ft_strcmp("", syms->symb[j].name) == 0 && symtab[j].st_shndx < file->ehdr64->e_shnum)
+                {
+                    syms->symb[j].name = (char *)(string_table + file->shdr64[symtab[j].st_shndx].sh_name);
+                    syms->symb[j].sh_type = -1; // apart from -a, i dont want section names to be printed
+                }
 
                 syms->symb[j].type_char = determine_symb(file, &syms->symb[j]);
 

@@ -56,6 +56,7 @@ SRCS	=	ft_abs.c\
 			is_number.c\
 			get_next_line.c\
 			ft_strpbrk.c\
+			is_in_range.c\
 
 OBJDIR	=		objs
 

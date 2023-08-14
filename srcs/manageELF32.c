@@ -42,6 +42,8 @@ void parse_symtab32(t_file *file)
     t_syms *syms = &file->syms;
     ft_memset(syms, 0, sizeof(t_syms));
 
+    const char *string_table = (char *)(file->data + file->shdr32[file->ehdr32->e_shstrndx].sh_offset);
+
     for (i = 0; i < file->ehdr32->e_shnum; i++)
     {
         if (file->shdr32[i].sh_type == SHT_SYMTAB)
@@ -76,6 +78,9 @@ void parse_symtab32(t_file *file)
                  retrieve the offset within the string table (strtab).
                  Adding this offset to strtab gives the address of the symbol's name.
                 */
+
+                syms->symb[j].name = "";
+                syms->symb[j].section_name = NULL;
                 syms->symb[j].name = strtab + symtab[j].st_name;
                 syms->symb[j].type = ELF32_ST_TYPE(symtab[j].st_info);
                 syms->symb[j].binding = ELF32_ST_BIND(symtab[j].st_info);
@@ -84,6 +89,14 @@ void parse_symtab32(t_file *file)
                 syms->symb[j].size = symtab[j].st_size;
                 syms->symb[j].value = symtab[j].st_value;
                 syms->symb[j].section_tab_index = symtab[j].st_shndx;
+
+                syms->symb[j].sh_type = SHT_SYMTAB;
+
+                if (ft_strcmp("", syms->symb[j].name) == 0 && symtab[j].st_shndx < file->ehdr32->e_shnum)
+                {
+                    syms->symb[j].name = (char *)(string_table + file->shdr32[symtab[j].st_shndx].sh_name);
+                    syms->symb[j].sh_type = -1; // apart from -a, i dont want section names to be printed
+                }
 
                 syms->symb[j].type_char = determine_symb(file, &syms->symb[j]);
                 t_symb *symb = &syms->symb[j];

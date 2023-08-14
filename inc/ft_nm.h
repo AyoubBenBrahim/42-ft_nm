@@ -22,10 +22,10 @@
 
 typedef enum
 {
-    DISPLAY_ALL, // a
-    NO_SORT,     // p
-    SORT_ORDER,
+    NO_SORT,                // p
+    SORT_ORDER,             // Default
     REVERSE_SORT,           // r
+    DISPLAY_ALL,            // a
     UNDEFINED_SYMBOLS_ONLY, // u
     EXTERNAL_ONLY           // g
 } e_option;
@@ -34,8 +34,9 @@ typedef struct
 {
     char *name;                 // Symbol name
     uint64_t size;              // Symbol size
-    uint64_t value;             // Symbol value
+    uint64_t value;             // Symbol address
     uint16_t section_tab_index; // Section index
+    const char *section_name;
 
     uint8_t type;
     uint8_t binding;
@@ -43,7 +44,8 @@ typedef struct
 
     char type_char;
 
-    // uint32_t flags;
+    uint32_t sh_type; // Section type (SYMTAB, STRTAB, etc.)
+
 } t_symb;
 
 typedef struct
@@ -86,7 +88,6 @@ typedef struct
 */
 
 void print_header32(t_file *file);
-// void print_header64(t_file *file);
 
 /*
 **** Parsing functions
@@ -112,13 +113,20 @@ char get_symb_type_and_visibility(t_symb *symb);
 char get_symbol_section_char(uint16_t section, t_file *file);
 char get_symbol_binding_char(uint8_t binding);
 char get_symbol_type_char(uint32_t type);
-void ft_qsort(t_symb *array, size_t size, int order);
+char get_symb_based_on_section(t_file *file, uint16_t section, const char *name);
+int get_section_name(uint32_t sh_flag, const char *name);
 
 /*
 **** Printing functions
 */
 
-void print_symboles32(t_file *file, int n_files);
-void print_symboles64(t_file *file, int n_files);
+void ft_qsort(t_symb *array, size_t size, int order);
+void mergeSort(t_symb *array, int size, int order);
+void undifined_symbols_only(t_file *file);
+void display_all(t_file *file);
+void external_only(t_file *file);
+void no_flag(t_file *file);
+void print_symboles(t_file *file, int n_files);
+void output(t_file *file, uint64_t value, char type, char *name, u_int16_t shndx);
 
 #endif

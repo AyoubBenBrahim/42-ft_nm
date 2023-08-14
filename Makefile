@@ -10,6 +10,7 @@ FUNCTIONS	=	ft_nm.c\
 				printer.c\
 				symboles_handler.c\
 				debug.c\
+				get_section_name.c\
 				
 				
 

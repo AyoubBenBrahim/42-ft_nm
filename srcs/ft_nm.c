@@ -5,13 +5,16 @@ int open_file(const char *path)
     int fd = open(path, O_RDONLY);
     if (fd == -1)
     {
-        ft_printf("[ERROR] can't open file : '%s'\n", path);
+        if (path[0] == '-')
+            ft_printf("Allowed options are -p -r -u -a -g\n");
+        else
+            ft_printf("[ERROR] can't open file : '%s'\n", path);
         exit(1);
     }
     return fd;
 }
 
-// Map a file into memory and return a pointer to the mapped data
+// Map a file into memory and return a pointer to the mapped area
 void *map_file(const char *path, int fd, size_t size)
 {
     void *data = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -96,6 +99,7 @@ void parse_ehdr(t_file *file)
  * byte offset from the beginning of the file
  * to the section header table.
  */
+
 void parse_shdr(t_file *file)
 {
     if (file->is64)
@@ -155,7 +159,7 @@ void manageELF(t_file files[], int n_files)
                 ft_printf("Invalid ELF section header offset\n");
                 exit(1);
             }
-            print_symboles64(&files[i], n_files);
+            print_symboles(&files[i], n_files);
             free(files[i].syms.symb);
         }
         else
@@ -166,7 +170,7 @@ void manageELF(t_file files[], int n_files)
                 ft_printf("Invalid ELF section header offset\n");
                 exit(1);
             }
-            print_symboles32(&files[i], n_files);
+            print_symboles(&files[i], n_files);
             free(files[i].syms.symb);
         }
     }
@@ -179,17 +183,21 @@ void close_files(t_file files[], int n_files)
         unmap_file(files[i].path, files[i].data, files[i].data_size, files[i].fd);
 }
 
+/*
+*** [p r u a g]
+***  -p     Don't sort; display in symbol-table order.
+***  -r     Sort in reverse order.
+***  -u     Display only undefined symbols.
+***  -a     Display all symbols.
+***  -g     Display only external symbols.
+*/
+
 int main(int argc, char *argv[])
 {
     t_file files[MAX_FILES];
     int i, n_files;
 
     ft_memset(files, 0, sizeof(files));
-    // [p r u a g]
-    //  -p     Don't sort; display in symbol-table order.
-    //  -r     Sort in reverse order.
-    //  -u     Display only undefined symbols.
-    //  -a     Display all symbols.
     e_option option = SORT_ORDER;
     for (i = 1, n_files = 0; i < argc; i++)
     {
