@@ -36,7 +36,6 @@ typedef struct
     uint64_t size;              // Symbol size
     uint64_t value;             // Symbol address
     uint16_t section_tab_index; // Section index
-    const char *section_name;
 
     uint8_t type;
     uint8_t binding;

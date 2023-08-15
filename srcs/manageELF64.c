@@ -31,6 +31,8 @@ void parse_symtab64(t_file *file)
 
             for (size_t j = 0; j < syms->n_syms; j++)
             {
+                
+                syms->symb[j].name = "";
                 syms->symb[j].name = strtab + symtab[j].st_name;
                 syms->symb[j].type = ELF64_ST_TYPE(symtab[j].st_info);
                 syms->symb[j].binding = ELF64_ST_BIND(symtab[j].st_info);

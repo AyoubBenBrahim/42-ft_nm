@@ -80,7 +80,6 @@ void parse_symtab32(t_file *file)
                 */
 
                 syms->symb[j].name = "";
-                syms->symb[j].section_name = NULL;
                 syms->symb[j].name = strtab + symtab[j].st_name;
                 syms->symb[j].type = ELF32_ST_TYPE(symtab[j].st_info);
                 syms->symb[j].binding = ELF32_ST_BIND(symtab[j].st_info);
